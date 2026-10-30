@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, MapPin, Scale, ShieldCheck, CheckCircle2, Clock, Sparkles, FileText, ArrowRight } from 'lucide-react';
+import { Camera, MapPin, Scale, ShieldCheck, CheckCircle2, Clock, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function ListingCard({ listing, onSelectListing }) {
   const {
@@ -53,6 +53,16 @@ export default function ListingCard({ listing, onSelectListing }) {
 
   const statusMeta = getStatusBadge(status);
   const StatusIcon = statusMeta.icon;
+
+  const parsedConfidence = Number(confidence);
+  const hasConfidence =
+    confidence !== null &&
+    confidence !== undefined &&
+    String(confidence).trim() !== '' &&
+    Number.isFinite(parsedConfidence);
+  const confidencePercent = hasConfidence
+    ? Math.min(100, Math.max(0, parsedConfidence))
+    : 0;
 
   // Confidence color gradient & bar
   const getConfidenceColor = (conf) => {
@@ -161,19 +171,21 @@ export default function ListingCard({ listing, onSelectListing }) {
               AI Visual Confidence
             </span>
             <span className="font-bold font-mono text-cyan-300 text-xs">
-              {confidence}%
+              {hasConfidence ? `${confidencePercent}%` : 'N/A'}
             </span>
           </div>
 
           {/* Visual Progress Bar Container */}
           <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden p-0.5 border border-slate-800">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(confidence)} transition-all duration-500`}
-              style={{ width: `${Math.min(100, Math.max(0, confidence))}%` }}
+              className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(confidencePercent)} transition-all duration-500`}
+              style={{ width: `${confidencePercent}%` }}
               role="progressbar"
-              aria-valuenow={confidence}
+              aria-label="AI visual confidence"
+              aria-valuenow={confidencePercent}
               aria-valuemin="0"
               aria-valuemax="100"
+              aria-valuetext={hasConfidence ? `${confidencePercent}%` : 'Not available'}
             ></div>
           </div>
 
@@ -182,13 +194,16 @@ export default function ListingCard({ listing, onSelectListing }) {
             <span className="truncate max-w-[180px]" title={evidenceLevel}>
               {evidenceLevel || 'Level 1 — Visual Screening'}
             </span>
-            <button
-              onClick={() => onSelectListing(listing)}
-              className="inline-flex items-center gap-0.5 text-orange-400 hover:text-orange-300 font-medium transition-colors cursor-pointer"
-            >
-              <span>Inspect</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
+            {typeof onSelectListing === 'function' && (
+              <button
+                type="button"
+                onClick={() => onSelectListing(listing)}
+                className="inline-flex items-center gap-0.5 text-orange-400 hover:text-orange-300 font-medium transition-colors cursor-pointer"
+              >
+                <span>Inspect</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
 
